@@ -10,39 +10,39 @@ import (
 
 func TestNew(t *testing.T) {
 	t.Run("when no error", func(t *testing.T) {
-		loader := lazy.New(func() (int, error) {
+		value := lazy.NewValue(func() (int, error) {
 			return 123, nil
 		})
 
-		got := loader.Value()
+		got := value.Val()
 		if got != 123 {
 			t.Errorf("got %d, want %d", got, 123)
 		}
 
-		err := loader.Error()
+		err := value.Err()
 		if err != nil {
 			t.Errorf("got %v, want %v", err, nil)
 		}
 	})
 
 	t.Run("when error", func(t *testing.T) {
-		loader := lazy.New(func() (int, error) {
+		value := lazy.NewValue(func() (int, error) {
 			return 123, errors.New("error")
 		})
 
-		got := loader.Value()
+		got := value.Val()
 		if got != 123 {
 			t.Errorf("got %d, want %d", got, 123)
 		}
 
-		err := loader.Error()
+		err := value.Err()
 		if err == nil {
 			t.Errorf("got %v, want %v", err, errors.New("error"))
 		}
 	})
 
 	t.Run("concurrent reading", func(t *testing.T) {
-		loader := lazy.New(func() (int, error) {
+		value := lazy.NewValue(func() (int, error) {
 			return 123, errors.New("error")
 		})
 
@@ -52,7 +52,7 @@ func TestNew(t *testing.T) {
 		// concurrent reader 1
 		go func() {
 			defer wg.Done()
-			got := loader.Value()
+			got := value.Val()
 			if got != 123 {
 				t.Errorf("got %d, want %d", got, 123)
 			}
@@ -61,7 +61,7 @@ func TestNew(t *testing.T) {
 		// concurrent reader 2
 		go func() {
 			defer wg.Done()
-			got := loader.Value()
+			got := value.Val()
 			if got != 123 {
 				t.Errorf("got %d, want %d", got, 123)
 			}
@@ -70,7 +70,7 @@ func TestNew(t *testing.T) {
 		// concurrent error handler
 		go func() {
 			defer wg.Done()
-			err := loader.Error()
+			err := value.Err()
 			if err == nil {
 				t.Errorf("got %v, want %v", err, errors.New("error"))
 			}

@@ -3,34 +3,40 @@ package lazy
 import "sync"
 
 // Value is a generic Lazy loader.
-type Value[T any] struct {
+type Value[T any] interface {
+	// Val loads if the value is not loaded yet,
+	// and returns the value.
+	Val() T
+
+	Err() error
+}
+
+// NewValue creates a new Value.
+func NewValue[T any](init func() (T, error)) Value[T] {
+	return &lazyValue[T]{init: init}
+}
+
+type lazyValue[T any] struct {
 	init func() (T, error)
 	once sync.Once
 	val  T
 	err  error
 }
 
-// NewValue creates a new Value.
-func NewValue[T any](init func() (T, error)) Value[T] {
-	return Value[T]{init: init}
-}
-
-func (c *Value[T]) load() {
-	c.once.Do(func() {
-		c.val, c.err = c.init()
+func (lv *lazyValue[T]) load() {
+	lv.once.Do(func() {
+		lv.val, lv.err = lv.init()
 		// release init, so the GC can collect it.
-		c.init = nil
+		lv.init = nil
 	})
 }
 
-// Val loads if the value is not loaded yet,
-// and returns the value.
-func (c *Value[T]) Val() T {
-	c.load()
-	return c.val
+func (lv *lazyValue[T]) Val() T {
+	lv.load()
+	return lv.val
 }
 
-func (c *Value[T]) Err() error {
-	c.load()
-	return c.err
+func (lv *lazyValue[T]) Err() error {
+	lv.load()
+	return lv.err
 }

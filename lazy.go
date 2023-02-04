@@ -19,9 +19,7 @@ func New[T any](supplier func() (T, error)) Loader[T] {
 	}
 }
 
-// Value loads if the value is not loaded yet,
-// and returns the value.
-func (c *Loader[T]) Value() T {
+func (c *Loader[T]) load() {
 	c.onc.Do(func() {
 		val, err := c.supplier()
 		c.val = val
@@ -30,15 +28,17 @@ func (c *Loader[T]) Value() T {
 		// release the supplier, so the GC can collect it.
 		c.supplier = nil
 	})
+}
 
+// Value loads if the value is not loaded yet,
+// and returns the value.
+func (c *Loader[T]) Value() T {
+	c.load()
 	return c.val
 }
 
 func (c *Loader[T]) Error() error {
-	if !c.Loaded() {
-		return nil
-	}
-
+	c.load()
 	return c.err
 }
 

@@ -2,8 +2,9 @@ package lazy_test
 
 import (
 	"errors"
-	"github.com/josestg/lazy"
 	"testing"
+
+	"github.com/asmsh/lazy"
 )
 
 func TestNew(t *testing.T) {

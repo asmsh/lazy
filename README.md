@@ -6,7 +6,7 @@ and cache the result for future use.
 ## Installation
 
 ```bash
-go get github.com/josestg/lazy
+go get github.com/asmsh/lazy
 ```
 
 ## Example
@@ -18,7 +18,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/josestg/lazy"
+	"github.com/asmsh/lazy"
 )
 
 func main() {

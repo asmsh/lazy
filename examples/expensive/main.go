@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/josestg/lazy"
+	"github.com/asmsh/lazy"
 )
 
 func main() {

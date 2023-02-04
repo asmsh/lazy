@@ -9,6 +9,8 @@ type Value[T any] interface {
 	Val() T
 
 	Err() error
+
+	private()
 }
 
 // NewValue creates a new Value.
@@ -30,6 +32,8 @@ func (lv *lazyValue[T]) load() {
 		lv.init = nil
 	})
 }
+
+func (lv *lazyValue[T]) private() {}
 
 func (lv *lazyValue[T]) Val() T {
 	lv.load()

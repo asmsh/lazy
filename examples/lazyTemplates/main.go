@@ -1,28 +1,17 @@
-# Lazy
-
-A lazy value loader, it can be used to load expensive computation only when it is needed 
-and cache the result for future use.
-
-## Installation
-
-```bash
-go get github.com/asmsh/lazy
-```
-
-## Example
-
-```go
 package main
 
 import (
 	"bytes"
 	"fmt"
+	"log"
 	"sync"
 	"text/template"
 
 	"github.com/asmsh/lazy"
 )
 
+// helloTmpl will panic if it fails to load the waned value,
+// hence no need to check its Err() return.
 var helloTmpl = lazy.NewValue(func() (*template.Template, error) {
 	tmplTxt := `Hello {{.}}!`
 	tmpl := template.Must(template.New("hello").Parse(tmplTxt))
@@ -42,15 +31,18 @@ func main() {
 	for _, v := range users {
 		user := v
 
+		// greet each user concurrently, using the same template
 		go func() {
 			defer wg.Done()
 
 			b := bytes.Buffer{}
-			helloTmpl.Val().Execute(&b, user)
+			err := helloTmpl.Val().Execute(&b, user)
+			if err != nil {
+				log.Fatal(err)
+			}
 			fmt.Println(b.String())
 		}()
 	}
 
 	wg.Wait()
 }
-```

@@ -2,47 +2,51 @@ package lazy
 
 import "sync"
 
-type Supplier[T any] func() (T, error)
+// Value is a generic container offering lazy-loading for values of any type.
+// Safe for concurrent usage.
+type Value[T any] interface {
+	// Val returns the lazily-loaded value contained within this Value.
+	// It will load the value if it wasn't loaded yet.
+	// All callers will block until the value is loaded.
+	Val() T
 
-// Loader is a generic Lazy loader.
-type Loader[T any] struct {
-	onc      sync.Once
-	set      bool
-	val      T
-	err      error
-	supplier Supplier[T]
+	// Err returns the error that occurred while loading the value.
+	// It will load the value if it wasn't loaded yet.
+	// All callers will block until the value is loaded.
+	Err() error
+
+	private()
 }
 
-// New creates a new Loader.
-func New[T any](supplier Supplier[T]) Loader[T] {
-	return Loader[T]{
-		onc:      sync.Once{},
-		supplier: supplier,
-	}
+// NewValue creates a new Value, which will be lazily-loaded from the loader
+// function provided, init, upon first call to any of its methods.
+func NewValue[T any](init func() (T, error)) Value[T] {
+	return &lazyValue[T]{init: init}
 }
 
-// Value loads if the value is not loaded yet,
-// and returns the value.
-func (c *Loader[T]) Value() T {
-	c.onc.Do(func() {
-		val, err := c.supplier()
-		c.val = val
-		c.err = err
-		c.set = true
-		// release the supplier, so the GC can collect it.
-		c.supplier = nil
+type lazyValue[T any] struct {
+	init func() (T, error)
+	once sync.Once
+	val  T
+	err  error
+}
+
+func (lv *lazyValue[T]) load() {
+	lv.once.Do(func() {
+		lv.val, lv.err = lv.init()
+		// release init, so the GC can collect it.
+		lv.init = nil
 	})
-
-	return c.val
 }
 
-func (c *Loader[T]) Error() error {
-	if !c.Loaded() {
-		return nil
-	}
+func (lv *lazyValue[T]) private() {}
 
-	return c.err
+func (lv *lazyValue[T]) Val() T {
+	lv.load()
+	return lv.val
 }
 
-// Loaded returns true if the value is loaded.
-func (c *Loader[T]) Loaded() bool { return c.set }
+func (lv *lazyValue[T]) Err() error {
+	lv.load()
+	return lv.err
+}

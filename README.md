@@ -15,24 +15,42 @@ go get github.com/asmsh/lazy
 package main
 
 import (
+	"bytes"
 	"fmt"
-	"time"
+	"sync"
+	"text/template"
 
 	"github.com/asmsh/lazy"
 )
 
+var helloTmpl = lazy.NewValue(func() (*template.Template, error) {
+	tmplTxt := `Hello {{.}}!`
+	tmpl := template.Must(template.New("hello").Parse(tmplTxt))
+	return tmpl, nil
+})
+
 func main() {
-	// Create a lazy value loader.
-	l := lazy.NewValue(func() (string, error) {
-		time.Sleep(1 * time.Second)
-		return "Hello, World!", nil
-	})
+	users := []string{
+		"UserA",
+		"UserB",
+		"UserC",
+	}
 
-	// Get the value for the first time will be slow.
-	fmt.Println(l.Val())  // Hello, World!
+	wg := sync.WaitGroup{}
+	wg.Add(len(users))
 
-	// Get the value for the next will return the cached value.
-	fmt.Println(l.Val()) // Hello, World!
-	fmt.Println(l.Val()) // Hello, World!
+	for _, v := range users {
+		user := v
+
+		go func() {
+			defer wg.Done()
+
+			b := bytes.Buffer{}
+			helloTmpl.Val().Execute(&b, user)
+			fmt.Println(b.String())
+		}()
+	}
+
+	wg.Wait()
 }
 ```

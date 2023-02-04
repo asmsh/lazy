@@ -2,19 +2,17 @@ package lazy
 
 import "sync"
 
-type Supplier[T any] func() (T, error)
-
 // Loader is a generic Lazy loader.
 type Loader[T any] struct {
 	onc      sync.Once
 	set      bool
 	val      T
 	err      error
-	supplier Supplier[T]
+	supplier func() (T, error)
 }
 
 // New creates a new Loader.
-func New[T any](supplier Supplier[T]) Loader[T] {
+func New[T any](supplier func() (T, error)) Loader[T] {
 	return Loader[T]{
 		onc:      sync.Once{},
 		supplier: supplier,

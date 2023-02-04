@@ -14,17 +14,9 @@ func TestNew(t *testing.T) {
 			return 123, nil
 		})
 
-		if loader.Loaded() {
-			t.Errorf("got %t, want %t", loader.Loaded(), false)
-		}
-
 		got := loader.Value()
 		if got != 123 {
 			t.Errorf("got %d, want %d", got, 123)
-		}
-
-		if !loader.Loaded() {
-			t.Errorf("got %t, want %t", loader.Loaded(), true)
 		}
 
 		err := loader.Error()
@@ -38,17 +30,9 @@ func TestNew(t *testing.T) {
 			return 123, errors.New("error")
 		})
 
-		if loader.Loaded() {
-			t.Errorf("got %t, want %t", loader.Loaded(), false)
-		}
-
 		got := loader.Value()
 		if got != 123 {
 			t.Errorf("got %d, want %d", got, 123)
-		}
-
-		if !loader.Loaded() {
-			t.Errorf("got %t, want %t", loader.Loaded(), true)
 		}
 
 		err := loader.Error()

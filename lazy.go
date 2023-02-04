@@ -5,7 +5,6 @@ import "sync"
 // Loader is a generic Lazy loader.
 type Loader[T any] struct {
 	onc      sync.Once
-	set      bool
 	val      T
 	err      error
 	supplier func() (T, error)
@@ -24,7 +23,6 @@ func (c *Loader[T]) load() {
 		val, err := c.supplier()
 		c.val = val
 		c.err = err
-		c.set = true
 		// release the supplier, so the GC can collect it.
 		c.supplier = nil
 	})
@@ -41,6 +39,3 @@ func (c *Loader[T]) Error() error {
 	c.load()
 	return c.err
 }
-
-// Loaded returns true if the value is loaded.
-func (c *Loader[T]) Loaded() bool { return c.set }

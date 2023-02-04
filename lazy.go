@@ -2,18 +2,24 @@ package lazy
 
 import "sync"
 
-// Value is a generic Lazy loader.
+// Value is a generic container offering lazy-loading for values of any type.
+// Safe for concurrent usage.
 type Value[T any] interface {
-	// Val loads if the value is not loaded yet,
-	// and returns the value.
+	// Val returns the lazily-loaded value contained within this Value.
+	// It will load the value if it wasn't loaded yet.
+	// All callers will block until the value is loaded.
 	Val() T
 
+	// Err returns the error that occurred while loading the value.
+	// It will load the value if it wasn't loaded yet.
+	// All callers will block until the value is loaded.
 	Err() error
 
 	private()
 }
 
-// NewValue creates a new Value.
+// NewValue creates a new Value, which will be lazily-loaded from the loader
+// function provided, init, upon first call to any of its methods.
 func NewValue[T any](init func() (T, error)) Value[T] {
 	return &lazyValue[T]{init: init}
 }

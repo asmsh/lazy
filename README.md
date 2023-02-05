@@ -1,7 +1,6 @@
 # Lazy
 
-A lazy value loader, it can be used to load expensive computation only when it is needed 
-and cache the result for future use.
+A generic lazy value loader, with simple API. It offers a simple way to lazy-load expensive values when first needed, and instant access to them later.
 
 ## Installation
 

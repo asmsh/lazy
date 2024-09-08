@@ -41,6 +41,24 @@ func TestNew(t *testing.T) {
 		}
 	})
 
+	t.Run("not loaded then loaded", func(t *testing.T) {
+		value := lazy.NewValue(func() (int, error) {
+			return 123, errors.New("error")
+		})
+
+		gotBefore := value.IsLoaded()
+		if gotBefore != false {
+			t.Errorf("got %t, want %t", gotBefore, false)
+		}
+
+		value.Val() // or value.Err()
+
+		gotAfter := value.IsLoaded()
+		if gotAfter != true {
+			t.Errorf("got %t, want %t", gotAfter, true)
+		}
+	})
+
 	t.Run("concurrent reading", func(t *testing.T) {
 		value := lazy.NewValue(func() (int, error) {
 			return 123, errors.New("error")
